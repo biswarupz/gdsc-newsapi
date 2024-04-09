@@ -1,0 +1,26 @@
+name = "news-api"
+compatibility_date = "2023-12-01"
+
+
+
+[vars]
+DATABASE_URL="prisma://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlfa2V5IjoiYjY2MDVmY2EtYWYzZS00NTI0LTg1MzctZmZiMThhOWRhMDVmIiwidGVuYW50X2lkIjoiMDE4Mjg0OTI2ODAwZGViNTZhNjVjMTlhM2VkOWNhOTFhMGI5ZGRiOTg4MWIyMDA3NmQ4NWViMTMxYmM1MzE3ZSIsImludGVybmFsX3NlY3JldCI6IjNhZDQyODdhLTU2MDctNGVhNS1hNGI2LWVhOGM1MzU0NzcxNCJ9.KYS-FWggDypobAPw_-lat_sC9NV4oaMlAFcbRFSZRoA"
+JWT_SECRET = "gdsc-news-api-jwt-key"
+
+# MY_VAR = "my-variable"
+
+# [[kv_namespaces]]
+# binding = "MY_KV_NAMESPACE"
+# id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# [[r2_buckets]]
+# binding = "MY_BUCKET"
+# bucket_name = "my-bucket"
+
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "my-database"
+# database_id = ""
+
+# [ai]
+# binding = "AI"
