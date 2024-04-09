@@ -14,6 +14,13 @@ model User {
   password      String
   website       String?
   company       String?
-  premium       String?
+  premium       Boolean?
   createdAt     DateTime   @default(now())
+}
+
+model News {
+  id           String      @id @default(uuid())
+  title        String?
+  description  String?
+  catagory     String?
 }

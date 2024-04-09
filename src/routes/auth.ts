@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { sign } from "hono/jwt";
 import { z } from "zod";
+import { use } from "hono/jsx";
 export const authRouter = new Hono<{
   Bindings: {
     DATABASE_URL: string;
@@ -42,6 +43,7 @@ authRouter.post("/signup", async (c) => {
         fullname: body.fullname,
         email: body.email,
         password: body.password,
+        premium: false,
       },
     });
     console.log(user);
@@ -52,7 +54,12 @@ authRouter.post("/signup", async (c) => {
       });
     }
     const jwt = await sign({ id: user.id }, c.env.JWT_SECRET);
-    return c.json({ status: 200, token: jwt, message: "Signup successful" });
+    return c.json({
+      status: 200,
+      token: jwt,
+      message: "Signup successful",
+      api: user.id,
+    });
   } catch (error) {
     console.log(error);
     return c.json({ status: 400, message: "Signup failed" });
@@ -89,7 +96,12 @@ authRouter.post("/login", async (c) => {
       });
     }
     const jwt = await sign({ id: user.id }, c.env.JWT_SECRET);
-    return c.json({ status: 200, token: jwt, message: "Login successful" });
+    return c.json({
+      status: 200,
+      token: jwt,
+      message: "Login successful",
+      api: user.id,
+    });
   } catch (error) {
     console.log(error);
     return c.json({ status: 400, message: "Login failed" });
