@@ -32,23 +32,39 @@ newsRouter.post("/add", async (c) => {
   return c.text("received");
 });
 
+
+
+
 newsRouter.get("/news", async (c) => {
   const { api, count, catagory } = c.req.queries();
   const prisma = new PrismaClient({
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
-  const finduder = await prisma.user.findUnique({
+  const findUser = await prisma.user.findUnique({
     where: {
       id: api[0],
     },
   });
-  if (!finduder) {
+  if (!findUser) {
     return c.json({ status: 400, message: "Invalid API" });
   }
-  if (finduder.premium == false) {
-    // free user logic
-  }
+  if (findUser.premium == false) {
+    const news = await prisma.news.findMany({
+      take: 10,
+    });
+    if (!news) {
+      return c.json({
+        status: 400,
+        message: "news fetching failed",
+      });
+    }
 
-  //const data = await prisma.news.findMany({});
+    return c.json({
+      status: 200,
+      message: "news fetched successfully",
+      data: news,
+    });
+  }
+if (findUser.)
   return c.json({ data: "hi there" });
 });

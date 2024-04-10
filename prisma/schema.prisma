@@ -15,6 +15,7 @@ model User {
   website       String?
   company       String?
   premium       Boolean?
+  paymentDate   Int?
   createdAt     DateTime   @default(now())
 }
 

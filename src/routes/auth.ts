@@ -1,9 +1,8 @@
 import { Hono } from "hono";
-import { PrismaClient } from "@prisma/client/edge";
+import { Prisma, PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
-import { sign } from "hono/jwt";
+import { sign, verify } from "hono/jwt";
 import { z } from "zod";
-import { use } from "hono/jsx";
 export const authRouter = new Hono<{
   Bindings: {
     DATABASE_URL: string;
@@ -105,5 +104,45 @@ authRouter.post("/login", async (c) => {
   } catch (error) {
     console.log(error);
     return c.json({ status: 400, message: "Login failed" });
+  }
+});
+authRouter.post("/payment", async (c) => {
+  const body = await c.req.json();
+  const token = body.token;
+  const paymentSuccess = body.payment;
+  const userId = await verify(token, c.env.JWT_SECRET);
+  const prisma = new PrismaClient({
+    datasourceUrl: c.env.DATABASE_URL,
+  }).$extends(withAccelerate());
+  const findUser = await prisma.user.findUnique({
+    where: {
+      id: userId.id,
+    },
+  });
+
+  if (!findUser) {
+    return c.json({ status: 400, message: "user not verified" });
+  }
+  if (paymentSuccess === "success") {
+    const makeUserPremium = await prisma.user.update({
+      where: {
+        id: userId.id,
+      },
+      data: {
+        paymentDate: Date.now(),
+        premium: true,
+      },
+    });
+
+    if (!makeUserPremium) {
+      return c.json({
+        status: 400,
+        message: "Internal error, please contact the team for guidance",
+      });
+    }
+    return c.json({ status: 200, message: "User is now a premium user" });
+  }
+  if (paymentSuccess === "failed") {
+    return c.json({ status: 400, message: "Payment failed" });
   }
 });
