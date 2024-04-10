@@ -9,28 +9,6 @@ export const newsRouter = new Hono<{
   };
 }>();
 
-newsRouter.post("/add", async (c) => {
-  const body = await c.req.json();
-  const prisma = new PrismaClient({
-    datasourceUrl: c.env.DATABASE_URL,
-  }).$extends(withAccelerate());
-
-  for (let i = 0; i < body.length; i++) {
-    const create = await prisma.news.create({
-      data: {
-        title: body[i].title,
-        description: body[i].description,
-        catagory: "general",
-      },
-    });
-    if (!create) {
-      console.log("data add failed");
-      return c.json({ message: "data add failed" });
-    }
-  }
-  console.log("success");
-  return c.text("received");
-});
 
 newsRouter.get("/news", async (c) => {
   const { api, count, catagory } = c.req.queries();
