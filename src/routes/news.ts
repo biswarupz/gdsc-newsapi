@@ -32,9 +32,6 @@ newsRouter.post("/add", async (c) => {
   return c.text("received");
 });
 
-
-
-
 newsRouter.get("/news", async (c) => {
   const { api, count, catagory } = c.req.queries();
   const prisma = new PrismaClient({
@@ -48,7 +45,7 @@ newsRouter.get("/news", async (c) => {
   if (!findUser) {
     return c.json({ status: 400, message: "Invalid API" });
   }
-  if (findUser.premium == false) {
+  if (findUser.premium === false) {
     const news = await prisma.news.findMany({
       take: 10,
     });
@@ -65,6 +62,26 @@ newsRouter.get("/news", async (c) => {
       data: news,
     });
   }
-if (findUser.)
+  if (findUser.premium === true) {
+    if (findUser.paymentDate == null) {
+      return c.json({ status: 400, message: "User not a premium user" });
+    } else {
+      if (findUser.paymentDate - Date.now() == 30) {
+        const findNews = await prisma.news.findMany({
+          take: 100,
+        });
+
+        if (!findNews) {
+          return c.json({ status: 400, message: "News not found" });
+        }
+
+        return c.json({
+          status: 200,
+          message: "data fetched successfully",
+          data: findNews,
+        });
+      }
+    }
+  }
   return c.json({ data: "hi there" });
 });
