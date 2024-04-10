@@ -64,7 +64,7 @@ newsRouter.get("/news", async (c) => {
   }
   if (findUser.premium === true) {
     if (findUser.paymentDate == null) {
-      return c.json({ status: 400, message: "User not a premium user" });
+      return;
     } else {
       if (findUser.paymentDate - Date.now() == 30) {
         const findNews = await prisma.news.findMany({
