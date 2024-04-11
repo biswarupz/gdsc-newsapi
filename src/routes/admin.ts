@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
-import { sign } from "hono/jwt";
+import { sign, verify } from "hono/jwt";
 export const adminRouter = new Hono<{
   Bindings: {
     DATABASE_URL: string;
@@ -17,7 +17,7 @@ adminRouter.post("/signup", async (c) => {
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
 
-  const checkUniqueUsername = await prisma.user.findUnique({
+  const checkUniqueUsername = await prisma.admin.findUnique({
     where: {
       username: username,
     },
@@ -26,7 +26,7 @@ adminRouter.post("/signup", async (c) => {
     return c.json({ status: 401, message: "username already in use" });
   }
 
-  const createAdmin = await prisma.user.create({
+  const createAdmin = await prisma.admin.create({
     data: {
       username: username,
       password: password,
@@ -43,9 +43,25 @@ adminRouter.post("/signup", async (c) => {
 
 adminRouter.post("/add/news", async (c) => {
   const body = await c.req.json();
+  const token = c.req.header("token");
   const prisma = new PrismaClient({
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
+  if (!token) {
+    return c.json({
+      status: 400,
+      message: "Authentical error for admin to add new news",
+    });
+  }
+  const userId = await verify(token, c.env.JWT_SECRET);
+  const checkAdmin = await prisma.admin.findUnique({
+    where: {
+      id: userId.id,
+    },
+  });
+  if (!checkAdmin) {
+    return c.json({ status: 400, message: "Admin not valid" });
+  }
 
   for (let i = 0; i < body.length; i++) {
     const create = await prisma.news.create({
@@ -63,5 +79,3 @@ adminRouter.post("/add/news", async (c) => {
   console.log("success");
   return c.text("received");
 });
-
-

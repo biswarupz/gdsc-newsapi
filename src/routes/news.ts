@@ -9,57 +9,60 @@ export const newsRouter = new Hono<{
   };
 }>();
 
-
 newsRouter.get("/news", async (c) => {
-  const { api, count, catagory } = c.req.queries();
+  const { api, count: countParam, category, keyword } = c.req.queries();
   const prisma = new PrismaClient({
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
+
   const findUser = await prisma.user.findUnique({
     where: {
       id: api[0],
     },
   });
+
   if (!findUser) {
     return c.json({ status: 400, message: "Invalid API" });
   }
-  if (findUser.premium === false) {
-    const news = await prisma.news.findMany({
-      take: 10,
-    });
-    if (!news) {
-      return c.json({
-        status: 400,
-        message: "news fetching failed",
-      });
-    }
 
+  let count = 10;
+
+  if (findUser.premium === true && countParam) {
+    count = parseInt(countParam[0], 10);
+  }
+
+  const newsQuery: any = {
+    take: count,
+  };
+
+  if (category) {
+    newsQuery.where = {
+      category,
+    };
+  }
+
+  if (keyword) {
+    if (!newsQuery.where) {
+      newsQuery.where = {};
+    }
+    newsQuery.where.OR = [
+      { title: { contains: keyword } },
+      { description: { contains: keyword } },
+    ];
+  }
+
+  const news = await prisma.news.findMany(newsQuery);
+
+  if (!news) {
     return c.json({
-      status: 200,
-      message: "news fetched successfully",
-      data: news,
+      status: 400,
+      message: "News fetching failed",
     });
   }
-  if (findUser.premium === true) {
-    if (findUser.paymentDate == null) {
-      return;
-    } else {
-      if (findUser.paymentDate - Date.now() == 30) {
-        const findNews = await prisma.news.findMany({
-          take: 100,
-        });
 
-        if (!findNews) {
-          return c.json({ status: 400, message: "News not found" });
-        }
-
-        return c.json({
-          status: 200,
-          message: "data fetched successfully",
-          data: findNews,
-        });
-      }
-    }
-  }
-  return c.json({ data: "hi there" });
+  return c.json({
+    status: 200,
+    message: "News fetched successfully",
+    data: news,
+  });
 });
