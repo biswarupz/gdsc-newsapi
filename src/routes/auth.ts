@@ -109,7 +109,7 @@ authRouter.post("/login", async (c) => {
 authRouter.post("/payment", async (c) => {
   const body = await c.req.json();
   const token = body.token;
-  const paymentSuccess = body.payment;
+  const payment = body.payment;
   const userId = await verify(token, c.env.JWT_SECRET);
   const prisma = new PrismaClient({
     datasourceUrl: c.env.DATABASE_URL,
@@ -119,14 +119,16 @@ authRouter.post("/payment", async (c) => {
       id: userId.id,
     },
   });
+  console.log(token, payment);
 
   if (!findUser) {
     return c.json({ status: 400, message: "user not verified" });
   }
-  if (paymentSuccess === "success") {
+  console.log(findUser);
+  if (payment === "success") {
     const makeUserPremium = await prisma.user.update({
       where: {
-        id: userId.id,
+        id: findUser.id,
       },
       data: {
         paymentDate: Date.now(),
@@ -142,7 +144,10 @@ authRouter.post("/payment", async (c) => {
     }
     return c.json({ status: 200, message: "User is now a premium user" });
   }
-  if (paymentSuccess === "failed") {
-    return c.json({ status: 400, message: "Payment failed" });
+  if (payment === "failed") {
+    return c.json({
+      status: 400,
+      message: "Payment failed, please riase ticket for refund",
+    });
   }
 });
